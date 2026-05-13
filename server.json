@@ -1,0 +1,7 @@
+{
+  "name": "openpaye-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for OpenPaye API",
+  "author": "openpaye-mcp contributors",
+  "license": "Apache-2.0"
+}

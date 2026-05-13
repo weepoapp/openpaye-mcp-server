@@ -1,0 +1,66 @@
+{
+  "name": "openpaye-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP Server for OpenPaye API with stdio and HTTP transports",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "openpaye-mcp-server": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "manifest.json",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "bundle:mcp": "node scripts/bundle-mcp-entry.mjs",
+    "package:mcpb": "npm run build && npm run bundle:mcp && node scripts/build-mcpb.mjs",
+    "release:prepare": "node scripts/prepare-release.mjs",
+    "prepare": "husky",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "openpaye",
+    "payroll"
+  ],
+  "mcpName": "io.github.openpaye/openpaye-mcp-server",
+  "author": "openpaye-mcp contributors",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "pino": "^10.3.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.3.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "archiver": "^7.0.1",
+    "esbuild": "^0.25.12",
+    "eslint": "^10.0.2",
+    "husky": "^9.1.7",
+    "pino-pretty": "^13.1.3",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.0.18"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "manifest_version": "0.3",
+  "name": "openpaye",
+  "display_name": "OpenPaye MCP Server",
+  "version": "0.1.0",
+  "description": "MCP server for OpenPaye payroll API.",
+  "long_description": "OpenPaye MCP Server exposes tools to query and update payroll data (employees, contracts, payslips, absences, establishments, variables) via the OpenPaye HTTP API. Authentication is Basic Auth: use the same API identifier and API key as in your OpenPaye admin (Paramètres → Accès API). See https://www.openpaye.co/docs/acces-api",
+  "author": {
+    "name": "openpaye-mcp contributors",
+    "url": "https://github.com"
+  },
+  "homepage": "https://www.openpaye.co/docs/acces-api",
+  "documentation": "https://www.openpaye.co/docs/acces-api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openpaye/openpaye-mcp-server"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/mcp-main.cjs",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/mcp-main.cjs"],
+      "env": {
+        "OPENPAYE_API_USER": "${user_config.openpaye_api_user}",
+        "OPENPAYE_API_KEY": "${user_config.openpaye_api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "openpaye_api_user": {
+      "type": "string",
+      "title": "Identifiant API (Basic Auth)",
+      "description": "Identifiant affiché dans OpenPaye : liste des dossiers de paie → Paramètres → Accès API. Équivalent à la variable d'environnement OPENPAYE_API_USER. Documentation : https://www.openpaye.co/docs/acces-api",
+      "required": true
+    },
+    "openpaye_api_key": {
+      "type": "string",
+      "title": "Clé API (Basic Auth)",
+      "description": "Clé API générée dans le même écran (Paramètres → Accès API). Ce n'est pas le mot de passe de votre compte web sauf si la doc OpenPaye l'indique pour votre espace. Équivalent à OPENPAYE_API_KEY.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  },
+  "tools_generated": false,
+  "keywords": ["mcp", "openpaye", "payroll", "hr"]
+}
