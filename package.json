@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "config": {
+    "huskyAutoTag": true
+  },
   "bin": {
     "openpaye-mcp-server": "dist/index.js"
   },
@@ -33,6 +36,7 @@
     "bundle:mcp": "node scripts/bundle-mcp-entry.mjs",
     "package:mcpb": "npm run build && npm run bundle:mcp && node scripts/build-mcpb.mjs",
     "release:prepare": "node scripts/prepare-release.mjs",
+    "release:tag": "node scripts/git-tag-from-package.mjs",
     "prepare": "husky",
     "prepublishOnly": "npm run build"
   },

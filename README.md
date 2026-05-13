@@ -84,21 +84,47 @@ La commande `npm run package:mcpb` enchaine : compilation TypeScript (`tsc`), **
 npm run package:mcpb
 ```
 
-Le workflow GitHub Actions `release.yml` le build et l'attache automatiquement a chaque tag `v*`.
+### Declencher la release sur GitHub
+
+Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) ne part **pas** sur un simple `git push` de branche. Il s'execute uniquement si :
+
+1. Tu pousses un **tag** dont le nom commence par `v` (ex. `v0.1.0`), **ou**
+2. Tu lances l'action a la main : onglet **Actions** du depot → workflow **Release** → **Run workflow** (`workflow_dispatch`).
+
+Sans tag, le build release / piece jointe `.mcpb` ne sera pas cree par la CI.
+
+### Husky : tag automatique au `git push` (optionnel)
+
+Git **n’a pas** de hook `post-push`. Le comportement le plus proche est le hook **`pre-push`** (juste avant l’envoi au remote).
+
+Si tu actives `"config": { "huskyAutoTag": true }` dans `package.json`, le script `.husky/pre-push` :
+
+1. detecte un push vers **`main`** (modifiable avec `HUSKY_AUTO_TAG_BRANCH`, ex. `master`) ;
+2. cree le tag **`v` + version** du `package.json` s’il n’existe pas localement (sur `HEAD`) ;
+3. le **pousse vers `origin`** s’il n’existe pas encore sur le remote.
+
+Ainsi un `git push origin main` peut declencher la CI release sans commande `git tag` separee. Desactive avec `"huskyAutoTag": false` (defaut).
 
 ## Workflow release locale
 
-Pour preparer une release (met a jour versions + build + mcpb):
+Preparer une release (versions + build + mcpb) :
 
 ```bash
 npm run release:prepare -- patch
 ```
 
-Puis:
+Puis commit, **creer le tag**, pousser branche **et** tag :
 
 ```bash
 git add .
 git commit -m "release: vX.Y.Z"
 git tag vX.Y.Z
-git push && git push --tags
+git push origin main && git push origin vX.Y.Z
+```
+
+Raccourci pour creer le tag a partir de `package.json` (apres `release:prepare` et commit) :
+
+```bash
+npm run release:tag
+git push origin main && git push origin "v$(npm pkg get version | tr -d '"')"
 ```
