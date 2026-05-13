@@ -1,0 +1,88 @@
+# Cree un tag semver sur chaque push vers `main`.
+#
+# Strategies (variable de depot GitHub : Settings > Secrets and variables > Actions > Variables) :
+#   AUTOTAG_STRATEGY non definie ou "package" (defaut, recommande pour ce repo)
+#     -> tag vX.Y.Z = version de package.json si ce tag n'existe pas encore sur le remote.
+#     -> workflow typique : npm run release:prepare -- patch (ou minor/major), commit, push main.
+#   AUTOTAG_STRATEGY = "increment"
+#     -> tag patch suivant le dernier tag v*.*.* (style v0.0.1, v0.0.2, ...).
+#     -> peut diverger du numero dans package.json / nom du fichier .mcpb ; a utiliser en connaissance de cause.
+#
+# Desactiver ponctuellement : message de commit contenant [skip autotag]
+#
+# Enchainement : ce workflow pousse un tag -> release.yml (push tags v*) build le .mcpb et cree la GitHub Release.
+
+name: Auto tag
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: autotag-main
+  cancel-in-progress: true
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip autotag]') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute and push tag
+        env:
+          AUTOTAG_STRATEGY: ${{ vars.AUTOTAG_STRATEGY }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin --tags --force
+
+          strategy="${AUTOTAG_STRATEGY:-package}"
+          echo "AUTOTAG_STRATEGY=${strategy}"
+
+          if [ "${strategy}" = "increment" ]; then
+            latest=$(git tag -l 'v*.*.*' --sort=-v:refname | head -n 1 || true)
+            if [ -z "${latest}" ]; then
+              latest="v0.0.0"
+            fi
+            version=${latest#v}
+            IFS='.' read -r major minor patch <<< "${version}"
+            major=${major:-0}
+            minor=${minor:-0}
+            patch=${patch:-0}
+            patch=$((patch + 1))
+            new_tag="v${major}.${minor}.${patch}"
+          else
+            ver=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('package.json','utf8')).version);")
+            new_tag="v${ver}"
+          fi
+
+          echo "Candidate tag: ${new_tag}"
+
+          if git rev-parse "${new_tag}^{}" >/dev/null 2>&1; then
+            if [ "$(git rev-parse "${new_tag}^{}")" = "${GITHUB_SHA}" ]; then
+              echo "Commit deja pointe par ${new_tag}, rien a faire."
+              exit 0
+            fi
+            echo "Le tag ${new_tag} existe deja sur un autre commit. Bump la version (ex. npm run release:prepare -- patch), commit, puis poussez — skip."
+            exit 0
+          fi
+
+          if git ls-remote --tags origin "refs/tags/${new_tag}" | grep -q .; then
+            echo "Le tag ${new_tag} est deja sur le remote."
+            exit 0
+          fi
+
+          git tag -a "${new_tag}" -m "ci: auto tag ${new_tag}" "${GITHUB_SHA}"
+          git push origin "${new_tag}"

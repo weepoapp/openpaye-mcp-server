@@ -88,26 +88,25 @@ npm run package:mcpb
 
 Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) ne part **pas** sur un simple `git push` de branche. Il s'execute uniquement si :
 
-1. Tu pousses un **tag** dont le nom commence par `v` (ex. `v0.1.0`), **ou**
+1. Tu pousses un **tag** dont le nom commence par `v` (ex. `v0.1.0`) — y compris un tag cree par le workflow [autotag.yml](.github/workflows/autotag.yml) sur push `main`, **ou**
 2. Tu lances l'action a la main : onglet **Actions** du depot → workflow **Release** → **Run workflow** (`workflow_dispatch`).
 
 Sans tag, le build release / piece jointe `.mcpb` ne sera pas cree par la CI.
 
-### Husky : tag automatique au `git push` (optionnel)
+### Auto-tag sur push `main` (GitHub Actions)
 
-Git **n’a pas** de hook `post-push`. Le comportement le plus proche est le hook **`pre-push`** (juste avant l’envoi au remote).
+Le workflow [`.github/workflows/autotag.yml`](.github/workflows/autotag.yml) peut **creer et pousser un tag** a chaque push sur `main` (sauf message de commit contenant `[skip autotag]`).
 
-Si tu actives `"config": { "huskyAutoTag": true }` dans `package.json`, le script `.husky/pre-push` :
+- **Comportement par defaut** (`AUTOTAG_STRATEGY` non definie ou `package`) : tag = `v` + `version` du `package.json`, uniquement si ce tag n’existe pas encore — apres avoir mis a jour la version (ex. `npm run release:prepare -- patch`), commit + push sur `main`.
+- **Variable de depot `AUTOTAG_STRATEGY = increment`** : patch successif sur le dernier tag `v*.*.*` (ex. v0.0.1, v0.0.2) ; peut diverger du `package.json` et du manifest dans le `.mcpb`.
 
-1. detecte un push vers **`main`** (modifiable avec `HUSKY_AUTO_TAG_BRANCH`, ex. `master`) ;
-2. cree le tag **`v` + version** du `package.json` s’il n’existe pas localement (sur `HEAD`) ;
-3. le **pousse vers `origin`** s’il n’existe pas encore sur le remote.
+Le push du tag declenche ensuite [`.github/workflows/release.yml`](.github/workflows/release.yml) (build `.mcpb` + GitHub Release).
 
-Ainsi un `git push origin main` peut declencher la CI release sans commande `git tag` separee. Desactive avec `"huskyAutoTag": false` (defaut).
+Pour versions, changelog et releases entierement pilotes par les messages de commit (`feat:`, `fix:`, etc.), regarder [semantic-release](https://github.com/semantic-release/semantic-release).
 
 ## Workflow release locale
 
-Preparer une release (versions + build + mcpb) :
+Preparer une release (bump semver dans `package.json` / `manifest.json` / `server.json` + `src/constants.ts`, puis build `.mcpb`) :
 
 ```bash
 npm run release:prepare -- patch
@@ -122,9 +121,8 @@ git tag vX.Y.Z
 git push origin main && git push origin vX.Y.Z
 ```
 
-Raccourci pour creer le tag a partir de `package.json` (apres `release:prepare` et commit) :
+Pour pousser uniquement le tag correspondant a la version actuelle du `package.json` :
 
 ```bash
-npm run release:tag
 git push origin main && git push origin "v$(npm pkg get version | tr -d '"')"
 ```
