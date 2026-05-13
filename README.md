@@ -102,6 +102,8 @@ Le workflow [`.github/workflows/autotag.yml`](.github/workflows/autotag.yml) peu
 
 Le push du tag declenche ensuite [`.github/workflows/release.yml`](.github/workflows/release.yml) (build `.mcpb` + GitHub Release).
 
+Apres chaque run, ouvre l’onglet **Summary** du workflow : un bloc **Auto tag** indique strategie, tag calcule, et **Skip** / **OK** (les skips sont des succes GitHub Actions — le job est vert meme si aucun tag n’a ete pousse).
+
 Pour versions, changelog et releases entierement pilotes par les messages de commit (`feat:`, `fix:`, etc.), regarder [semantic-release](https://github.com/semantic-release/semantic-release).
 
 ## Workflow release locale

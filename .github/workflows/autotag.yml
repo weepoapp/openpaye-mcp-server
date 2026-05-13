@@ -33,9 +33,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Compute and push tag
         env:
@@ -43,13 +44,22 @@ jobs:
         run: |
           set -euo pipefail
 
+          {
+            echo "## Auto tag"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Ref: \`${GITHUB_REF}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          echo "::group::Fetch tags"
           git fetch origin --tags --force
+          echo "::endgroup::"
 
           strategy="${AUTOTAG_STRATEGY:-package}"
           echo "AUTOTAG_STRATEGY=${strategy}"
+          echo "- Strategie: \`${strategy}\`" >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${strategy}" = "increment" ]; then
             latest=$(git tag -l 'v*.*.*' --sort=-v:refname | head -n 1 || true)
@@ -69,20 +79,36 @@ jobs:
           fi
 
           echo "Candidate tag: ${new_tag}"
+          echo "- Tag calcule: \`${new_tag}\`" >> "$GITHUB_STEP_SUMMARY"
 
           if git rev-parse "${new_tag}^{}" >/dev/null 2>&1; then
             if [ "$(git rev-parse "${new_tag}^{}")" = "${GITHUB_SHA}" ]; then
-              echo "Commit deja pointe par ${new_tag}, rien a faire."
+              msg="Commit deja pointe par ${new_tag}, rien a faire."
+              echo "::notice::${msg}"
+              echo "### Resultat" >> "$GITHUB_STEP_SUMMARY"
+              echo "- **Skip** : ${msg}" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
-            echo "Le tag ${new_tag} existe deja sur un autre commit. Bump la version (ex. npm run release:prepare -- patch), commit, puis poussez — skip."
+            msg="Le tag ${new_tag} existe deja sur un autre commit. Bump la version (ex. npm run release:prepare -- patch), commit, puis poussez."
+            echo "::notice::${msg}"
+            echo "### Resultat" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **Skip** : ${msg}" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
           if git ls-remote --tags origin "refs/tags/${new_tag}" | grep -q .; then
-            echo "Le tag ${new_tag} est deja sur le remote."
+            msg="Le tag ${new_tag} est deja sur le remote."
+            echo "::notice::${msg}"
+            echo "### Resultat" >> "$GITHUB_STEP_SUMMARY"
+            echo "- **Skip** : ${msg}" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
+          echo "::group::Create and push tag ${new_tag}"
           git tag -a "${new_tag}" -m "ci: auto tag ${new_tag}" "${GITHUB_SHA}"
           git push origin "${new_tag}"
+          echo "::endgroup::"
+
+          echo "::notice::Tag ${new_tag} cree et pousse."
+          echo "### Resultat" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **OK** : tag \`${new_tag}\` cree et pousse vers \`origin\`." >> "$GITHUB_STEP_SUMMARY"
