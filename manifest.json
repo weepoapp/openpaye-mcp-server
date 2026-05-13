@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "openpaye",
   "display_name": "OpenPaye MCP Server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for OpenPaye payroll API.",
   "long_description": "OpenPaye MCP Server exposes tools to query and update payroll data (employees, contracts, payslips, absences, establishments, variables) via the OpenPaye HTTP API. Authentication is Basic Auth: use the same API identifier and API key as in your OpenPaye admin (Paramètres → Accès API). See https://www.openpaye.co/docs/acces-api",
   "author": {
@@ -21,7 +21,9 @@
     "entry_point": "dist/mcp-main.cjs",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/dist/mcp-main.cjs"],
+      "args": [
+        "${__dirname}/dist/mcp-main.cjs"
+      ],
       "env": {
         "OPENPAYE_API_USER": "${user_config.openpaye_api_user}",
         "OPENPAYE_API_KEY": "${user_config.openpaye_api_key}"
@@ -45,11 +47,20 @@
   },
   "compatibility": {
     "claude_desktop": ">=0.10.0",
-    "platforms": ["darwin", "win32", "linux"],
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
     "runtimes": {
       "node": ">=20.0.0"
     }
   },
   "tools_generated": false,
-  "keywords": ["mcp", "openpaye", "payroll", "hr"]
+  "keywords": [
+    "mcp",
+    "openpaye",
+    "payroll",
+    "hr"
+  ]
 }
