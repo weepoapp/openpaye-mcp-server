@@ -1,5 +1,5 @@
 export const SERVER_NAME = "openpaye-mcp-server";
-export const SERVER_VERSION = "0.1.1";
+export const SERVER_VERSION = "0.1.3";
 
 export const DEFAULT_BASE_URL = "https://api.openpaye.co";
 export const DEFAULT_HTTP_TIMEOUT_MS = 30_000;
