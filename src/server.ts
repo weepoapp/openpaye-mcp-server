@@ -49,7 +49,7 @@ export function createMcpServer(): McpServer {
               bulletinWorkflowHint:
                 "Saisir d'abord les elements variables (openpaye_variables_saisir_*) puis GET bulletin — openpaye_bulletin_calculer ou openpaye_bulletin_generer. Doc : openpaye://docs/saisie-variables",
               workflowHint:
-                "Ordre typique : dossiers_list → salaries_list (dossierId) → contrats_list (dossierId) → saisie variables → bulletin_generer ou bulletin_calculer.",
+                "Ordre typique : dossiers_list → periode_ouvrir (verifier mois) → salaries/contrats → saisie variables → bulletin_generer. Doc periode : openpaye://docs/ouvrir-periode",
               requiredEnv: ["OPENPAYE_API_USER", "OPENPAYE_API_KEY"],
             },
             null,
@@ -246,6 +246,98 @@ export function createMcpServer(): McpServer {
               },
               listerCodes: "openpaye_variables_list (dossierId + type + mois) — codes variables du dossier",
               prompt: "saisie_variables_paie",
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    }),
+  );
+
+  server.registerResource(
+    "openpaye-docs-ouvrir-periode",
+    "openpaye://docs/ouvrir-periode",
+    {
+      title: "Ouvrir une periode de paie (OpenPaye)",
+      description: "Interface et API : preparer un mois de paie avant saisie et bulletins",
+      mimeType: "application/json",
+    },
+    async () => ({
+      contents: [
+        {
+          uri: "openpaye://docs/ouvrir-periode",
+          text: JSON.stringify(
+            {
+              finding:
+                "L'API OpenPaye V2 (Redoc) ne propose pas d'endpoint POST/PUT « ouvrir periode » ou « cloturer periode ». L'ouverture d'un mois se fait dans l'interface ou implicitement en ciblant mois/annee dans chaque appel API.",
+              interfaceUtilisateur: {
+                sources: [
+                  "https://openpaye.co/docs/creer-un-dossier",
+                  "https://openpaye.co/docs/saisir-activite-partielle",
+                  "https://openpaye.co/docs/traitement-de-la-paie",
+                ],
+                etapes: [
+                  "Se connecter a OpenPaye et ouvrir le domaine : Parametres → Mes domaines → Ouvrir domaine.",
+                  "Ouvrir le dossier de paie concerne.",
+                  "Aller au menu Bulletins et selectionner le mois a traiter (ex. mars 2026).",
+                  "Verifier que le mois precedent est cloture/valide si votre processus interne l'exige (controles DSN, bulletins valides — voir editions et declarations).",
+                  "Saisir les elements variables du mois (absences, primes, heures sup…) puis recalculer les bulletins.",
+                ],
+                noteAnneeDossier:
+                  "A la creation du dossier, le champ annee fixe l'annee de debut des bulletins (non modifiable sans support OpenPaye). Voir openpaye.co/docs/creer-un-dossier.",
+              },
+              equivalentApi: {
+                workflow: [
+                  {
+                    step: 1,
+                    action: "Identifier le dossier",
+                    tools: ["openpaye_dossiers_list", "openpaye_dossiers_get"],
+                    note: "Recuperer id (dossierId) et code (codeDossier).",
+                  },
+                  {
+                    step: 2,
+                    action: "Verifier / preparer le mois (ouverture de periode cote API)",
+                    tool: "openpaye_periode_ouvrir",
+                    endpoint: "GET /variables?dossierId=&type=&mois=",
+                    note: "Confirme que le dossier repond pour le mois cible. Parametre type : codes sur https://api.openpaye.co/",
+                  },
+                  {
+                    step: 3,
+                    action: "Lister salaries et contrats actifs",
+                    tools: ["openpaye_salaries_list", "openpaye_contrats_list"],
+                  },
+                  {
+                    step: 4,
+                    action: "Saisir les elements variables du mois",
+                    tools: [
+                      "openpaye_variables_saisir_absence",
+                      "openpaye_variables_saisir_prime",
+                      "openpaye_variables_saisir_heures_sup",
+                      "openpaye_variables_saisir_option",
+                    ],
+                    doc: "openpaye://docs/saisie-variables",
+                  },
+                  {
+                    step: 5,
+                    action: "Calculer les bulletins du mois ouvert",
+                    tools: ["openpaye_bulletin_generer", "openpaye_bulletin_calculer"],
+                    doc: "openpaye://docs/calcul-bulletin",
+                  },
+                ],
+              },
+              exempleVerifierPeriode: {
+                tool: "openpaye_periode_ouvrir",
+                params: { dossierId: 123, type: "Absence", mois: 5 },
+                note: "annee n'est pas un query param de GET /variables ; le contexte annee est porte par le dossier et les appels bulletin (annee explicite).",
+              },
+              exempleBulletinApresOuverture: {
+                tool: "openpaye_bulletin_generer",
+                params: { codeDossier: "MONDOSSIER", annee: 2026, mois: 5 },
+              },
+              prompt: "ouvrir_periode_paie",
+              casParticulierCongesPayes:
+                "Reouverture periode CP (jours ouvres/ouvrables) : attendre le mois de reouverture (juin par defaut) et modifier la fiche etablissement avant les bulletins. Voir openpaye.co/docs/passage-des-cp-en-jours-ouvres-a-jours-ouvrables-ou-inversement",
             },
             null,
             2,

@@ -1,5 +1,5 @@
 export const SERVER_NAME = "openpaye-mcp-server";
-export const SERVER_VERSION = "0.1.5";
+export const SERVER_VERSION = "0.1.6";
 
 /** Documentation API actuelle (portail Redoc « V2 »). */
 export const OPENPAYE_API_VERSION = "v2";
@@ -134,6 +134,12 @@ export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
   { toolName: "openpaye_salaries_delete", method: "DELETE", path: "/salaries/{id}", description: "Delete employee", hasIdParam: true },
   { toolName: "openpaye_solde_tout_compte", method: "GET", path: "/soldeToutcomptes", description: "List final settlements" },
   { toolName: "openpaye_variables_list", method: "GET", path: "/variables", description: "List variables" },
+  {
+    toolName: "openpaye_periode_ouvrir",
+    method: "GET",
+    path: "/variables",
+    description: "Prepare or verify an open payroll period for a month",
+  },
   { toolName: "openpaye_variables_bulletins", method: "GET", path: "/variablesbulletins", description: "List bulletin variables" },
   { toolName: "openpaye_compteurs_conges", method: "GET", path: "/variablesbulletins/CompteursConges", description: "Get paid leave counters" },
   { toolName: "openpaye_variables_reprise_list", method: "GET", path: "/VariablesRepriseDossier", description: "List takeover variables" },

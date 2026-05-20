@@ -44,6 +44,17 @@ const bulletinDossierPeriodeSchema: ToolInputSchema = {
   page,
 };
 
+const periodeOuvertureSchema: ToolInputSchema = {
+  dossierId,
+  type: z
+    .string()
+    .min(1)
+    .describe(
+      "Type de variable OpenPaye (ex. codes sur https://api.openpaye.co/ — souvent le nom du rubrique)",
+    ),
+  mois,
+};
+
 /** Schemas d'entree par tool (parametres au premier niveau, pas dans query). */
 export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
   openpaye_absences_get: {
@@ -229,11 +240,8 @@ export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
     matricule,
     numeroContrat,
   },
-  openpaye_variables_list: {
-    dossierId,
-    type: z.string().min(1).describe("Type de variable (voir codes variables OpenPaye)"),
-    mois,
-  },
+  openpaye_variables_list: periodeOuvertureSchema,
+  openpaye_periode_ouvrir: periodeOuvertureSchema,
   openpaye_variables_bulletins: {
     contratId,
     annee,
@@ -268,7 +276,9 @@ export const ENDPOINT_DESCRIPTIONS: Partial<Record<string, string>> = {
   openpaye_editions_list:
     "Obtenir une edition comptable/paie (format optionnel PDF, Excel, …). Requiert codeDossier + periode.",
   openpaye_variables_list:
-    "Variables de paie d'un dossier. Utilise dossierId (id numerique), pas codeDossier.",
+    "Variables de paie d'un dossier pour un mois. Utilise dossierId (id numerique), pas codeDossier. Liste des types : https://api.openpaye.co/",
+  openpaye_periode_ouvrir:
+    "Preparer/verifier l'ouverture d'une periode de paie (GET /variables). Pas de POST « ouvrir periode » dans l'API : chaque appel cible un mois explicite. Utiliser ce tool en debut de mois pour confirmer l'acces aux variables avant saisie. Voir openpaye://docs/ouvrir-periode.",
   openpaye_variables_bulletins:
     "Variable d'un bulletin pour un contrat/mois/annee.",
   openpaye_salaries_list: "Lister les salaries. Filtrer par dossierId (id numerique du dossier).",

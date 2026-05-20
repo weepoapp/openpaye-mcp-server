@@ -3,6 +3,45 @@ import { z } from "zod";
 
 export function registerPrompts(server: McpServer): void {
   server.registerPrompt(
+    "ouvrir_periode_paie",
+    {
+      description: "Ouvrir ou preparer une periode de paie (mois) avant saisie et bulletins",
+      argsSchema: {
+        dossierId: z.string().describe("Id numerique du dossier (openpaye_dossiers_list)"),
+        codeDossier: z.string().describe("Code dossier string (openpaye_dossiers_list)"),
+        annee: z.string().describe("Annee de paie cible"),
+        mois: z.string().describe("Mois de paie (1-12)"),
+      },
+    },
+    async ({ dossierId, codeDossier, annee, mois }) => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: [
+              `Ouvrir/preparer la periode de paie ${mois}/${annee} pour le dossier ${codeDossier} (id ${dossierId}).`,
+              "Pas d'endpoint API « ouvrir periode » : voir openpaye://docs/ouvrir-periode.",
+              "",
+              "Interface OpenPaye (si acces manuel) :",
+              "- Parametres → Mes domaines → Ouvrir domaine → Ouvrir dossier",
+              `- Menu Bulletins → selectionner le mois ${mois}/${annee}`,
+              "",
+              "Workflow API :",
+              `1) openpaye_dossiers_get id=${dossierId} — verifier le dossier et l'annee de debut.`,
+              `2) openpaye_periode_ouvrir dossierId=${dossierId}, mois=${mois}, type=<rubrique> — verifier l'acces au mois (types sur https://api.openpaye.co/).`,
+              "3) openpaye_salaries_list + openpaye_contrats_list avec dossierId.",
+              "4) openpaye_variables_saisir_* pour saisir les elements variables du mois.",
+              `5) openpaye_bulletin_generer codeDossier=${codeDossier}, annee=${annee}, mois=${mois}.`,
+              "6) Controles : openpaye_editions_list (tableau des cotisations), puis DSN si fin de mois.",
+            ].join("\n"),
+          },
+        },
+      ],
+    }),
+  );
+
+  server.registerPrompt(
     "paie_mensuelle",
     {
       description: "Orchestre la preparation d'une paie mensuelle",
@@ -19,6 +58,7 @@ export function registerPrompts(server: McpServer): void {
             type: "text",
             text: [
               `Prepare un recap de paie pour ${mois}/${annee}.`,
+              "0) Ouvrir la periode : prompt ouvrir_periode_paie ou openpaye_periode_ouvrir (dossierId + mois + type). Doc : openpaye://docs/ouvrir-periode.",
               "1) openpaye_dossiers_list — recuperer le code dossier (string) et id dossier.",
               "2) openpaye_salaries_list avec dossierId — lister les salaries actifs (matricule).",
               "3) openpaye_contrats_list avec dossierId — contrats en vigueur (id contrat, numeroContrat).",
