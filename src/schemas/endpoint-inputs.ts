@@ -12,6 +12,14 @@ import {
   numeroContrat,
   page,
 } from "./openpaye-fields.js";
+import {
+  absenceSaisieSchema,
+  heuresSupSaisieSchema,
+  netEntrepriseSaisieSchema,
+  optionSaisieSchema,
+  primeSaisieSchema,
+  variablesRepriseSaisieSchema,
+} from "./variable-inputs.js";
 
 export type ToolInputSchema = Record<string, z.ZodTypeAny>;
 
@@ -48,12 +56,17 @@ export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
     anneeFin: annee.describe("Annee de fin de la plage"),
     moisFin: mois.describe("Mois de fin de la plage"),
   },
-  openpaye_absences_create: {
-    contratId,
-    body: z.unknown().describe("Corps JSON de l'absence (code, date_debut, date_fin, mois, annee, …)"),
-  },
+  openpaye_absences_create: absenceSaisieSchema,
+  openpaye_variables_saisir_absence: absenceSaisieSchema,
   openpaye_absences_update: {
-    body: z.unknown().describe("Corps JSON de l'absence a modifier"),
+    id: z.number().int().positive().optional().describe("Identifiant absence (ignore en POST)"),
+    code: z.string().min(1).optional(),
+    date_debut: z.string().optional(),
+    date_fin: z.string().optional(),
+    mois: mois.optional(),
+    annee: z.union([z.string(), z.number().int()]).optional(),
+    nbr_heure_by_user: z.number().optional(),
+    nbr_jour_by_user: z.number().optional(),
   },
   openpaye_bulletinspaies_list: bulletinSalarieSchema,
   openpaye_bulletin_calculer: bulletinSalarieSchema,
@@ -138,29 +151,62 @@ export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
   openpaye_etablissements_update: {
     body: z.unknown().describe("Corps JSON de l'etablissement a modifier"),
   },
-  openpaye_heures_supp_create: {
-    body: z.unknown().describe("Corps JSON des heures supplementaires"),
-  },
+  openpaye_heures_supp_create: heuresSupSaisieSchema,
+  openpaye_variables_saisir_heures_sup: heuresSupSaisieSchema,
   openpaye_heures_supp_update: {
-    body: z.unknown().describe("Corps JSON des heures supplementaires a modifier"),
+    id: z.number().int().positive().optional(),
+    code: z.string().min(1).optional(),
+    nombre: z.number().optional(),
+    mois: mois.optional(),
+    annee: z.union([z.string(), z.number().int()]).optional(),
   },
-  openpaye_net_entreprise_create: {
-    body: z.unknown().describe("Corps JSON Net Entreprise"),
-  },
+  openpaye_net_entreprise_create: netEntrepriseSaisieSchema,
+  openpaye_variables_saisir_net_entreprise: netEntrepriseSaisieSchema,
   openpaye_net_entreprise_update: {
-    body: z.unknown().describe("Corps JSON Net Entreprise a modifier"),
+    dossierId,
+    id: z.number().int().positive().optional(),
+    nom: z.string().optional(),
+    prenom: z.string().optional(),
+    siret: z.string().optional(),
+    civilite: z.string().optional(),
+    email: z.string().optional(),
+    telephone: z.string().optional(),
+    fax: z.string().optional(),
+    mot_pass: z.string().optional(),
   },
-  openpaye_options_create: {
-    body: z.unknown().describe("Corps JSON des options"),
-  },
+  openpaye_options_create: optionSaisieSchema,
+  openpaye_variables_saisir_option: optionSaisieSchema,
   openpaye_options_update: {
-    body: z.unknown().describe("Corps JSON des options a modifier"),
+    id: z.number().int().positive().optional(),
+    code: z.string().min(1).optional(),
+    valeur1: z.number().optional(),
+    valeur2: z.number().optional(),
+    valeur3: z.number().optional(),
+    date1: z.string().optional(),
+    date2: z.string().optional(),
+    date3: z.string().optional(),
+    actif1: z.boolean().optional(),
+    actif2: z.boolean().optional(),
+    actif3: z.boolean().optional(),
+    actif4: z.boolean().optional(),
+    actif5: z.boolean().optional(),
+    actif6: z.boolean().optional(),
+    actif7: z.boolean().optional(),
+    actif8: z.boolean().optional(),
+    mois: mois.optional(),
+    annee: z.union([z.string(), z.number().int()]).optional(),
   },
-  openpaye_primes_create: {
-    body: z.unknown().describe("Corps JSON de la prime"),
-  },
+  openpaye_primes_create: primeSaisieSchema,
+  openpaye_variables_saisir_prime: primeSaisieSchema,
   openpaye_primes_update: {
-    body: z.unknown().describe("Corps JSON de la prime a modifier"),
+    id: z.number().int().positive().optional(),
+    code: z.string().min(1).optional(),
+    montant: z.number().optional(),
+    bases: z.number().optional(),
+    tauxs: z.number().optional(),
+    mois: mois.optional(),
+    annee: z.union([z.string(), z.number().int()]).optional(),
+    ccn: z.number().int().optional(),
   },
   openpaye_salaries_list: {
     dossierId: dossierId.optional(),
@@ -203,11 +249,8 @@ export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
     contratId,
     nomVariable: z.string().min(1).describe("Nom de la variable reprise dossier"),
   },
-  openpaye_variables_reprise_create: {
-    contratId,
-    nomVariable: z.string().min(1).describe("Nom de la variable reprise dossier"),
-    valeur: z.string().describe("Valeur de la variable reprise dossier"),
-  },
+  openpaye_variables_reprise_create: variablesRepriseSaisieSchema,
+  openpaye_variables_saisir_reprise: variablesRepriseSaisieSchema,
 };
 
 /** Descriptions enrichies (workflow + doc API). */
@@ -215,11 +258,11 @@ export const ENDPOINT_DESCRIPTIONS: Partial<Record<string, string>> = {
   openpaye_bulletinspaies_list:
     "Obtenir un bulletin de paie pour un salarie/contrat sur une plage de mois. Requiert codeDossier + matricule + numeroContrat (openpaye_dossiers_list, openpaye_salaries_list, openpaye_contrats_list).",
   openpaye_bulletin_calculer:
-    "Calculer/obtenir le bulletin d'un salarie pour une periode (GET /bulletinspaies). L'API OpenPaye n'a pas de POST « calculer » : saisir d'abord les variables du mois (openpaye_primes_create, openpaye_absences_create, openpaye_heures_supp_create, …) puis appeler ce tool. Alias semantique de openpaye_bulletinspaies_list.",
+    "Calculer/obtenir le bulletin d'un salarie (GET /bulletinspaies — doc Redoc « Obtenir un bulletin de paie »). Pas de POST dedie : saisir d'abord les variables du mois (absences, primes, heures sup…) puis ce GET declenche le calcul. Voir ressource openpaye://docs/calcul-bulletin.",
   openpaye_bulletinspaies_by_periode:
-    "Lister les bulletins d'un dossier pour un mois/annee. Requiert codeDossier (plus simple que bulletinspaies_list pour une periode donnee).",
+    "Lister les bulletins d'un dossier pour un mois/annee (GET /bulletinspaies/listebulletinspaies).",
   openpaye_bulletin_generer:
-    "Generer/lister les bulletins de tous les salaries d'un dossier pour un mois (GET /bulletinspaies/listebulletinspaies). A utiliser apres saisie des variables de paie du mois. Alias semantique de openpaye_bulletinspaies_by_periode.",
+    "Generer/obtenir les bulletins de tous les salaries d'un dossier pour un mois (GET /bulletinspaies/listebulletinspaies). Meme endpoint que by_periode ; a appeler apres saisie des variables. Voir openpaye://docs/calcul-bulletin.",
   openpaye_bulletinspaies_details:
     "Detail d'une ligne de bulletin (parametre API contratid en minuscules, pas contratId).",
   openpaye_editions_list:
@@ -233,4 +276,30 @@ export const ENDPOINT_DESCRIPTIONS: Partial<Record<string, string>> = {
   openpaye_dossiers_list: "Lister les dossiers de paie. Retourne code (string) et id (numerique).",
   openpaye_dsns_list: "Obtenir une DSN. Requiert codeDossier, codeEtablissement, mois, annee.",
   openpaye_solde_tout_compte: "Solde de tout compte. Requiert codeDossier, matricule, numeroContrat.",
+  openpaye_absences_create:
+    "Ajouter une absence (element variable) pour un contrat/mois. Query contratId + body code, dates, mois, annee. Codes : openpaye_variables_list (dossierId + type).",
+  openpaye_variables_saisir_absence:
+    "Saisir une absence sur le bulletin du mois (POST /Abcenses). Etape 1 avant calcul bulletin. Alias de openpaye_absences_create.",
+  openpaye_absences_periode:
+    "Lister les absences d'un contrat sur une plage de mois (avant/apres saisie).",
+  openpaye_primes_create:
+    "Ajouter une prime (element variable) pour un contrat/mois. Query contratId + body code, montant, mois, annee.",
+  openpaye_variables_saisir_prime:
+    "Saisir une prime sur le bulletin du mois (POST /Primes). Alias de openpaye_primes_create.",
+  openpaye_heures_supp_create:
+    "Ajouter des heures supplementaires (element variable). Query contratId + body code, nombre, mois, annee.",
+  openpaye_variables_saisir_heures_sup:
+    "Saisir des heures supplementaires (POST /HeuresSupplementaires). Alias de openpaye_heures_supp_create.",
+  openpaye_options_create:
+    "Ajouter une option (element variable). Query contratId + body code, valeurs, mois, annee.",
+  openpaye_variables_saisir_option:
+    "Saisir une option de paie (POST /Options). Alias de openpaye_options_create.",
+  openpaye_variables_reprise_create:
+    "Saisir une variable reprise dossier (query contratId + nomVariable + valeur).",
+  openpaye_variables_saisir_reprise:
+    "Saisir une variable reprise dossier (POST /VariablesRepriseDossier).",
+  openpaye_net_entreprise_create:
+    "Parametrer Net-Entreprises pour un dossier. Query dossierId + body nom, prenom, siret, …",
+  openpaye_variables_saisir_net_entreprise:
+    "Saisir les identifiants Net-Entreprises du dossier (POST /NetEntreprise).",
 };

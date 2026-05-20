@@ -22,7 +22,7 @@ export function registerPrompts(server: McpServer): void {
               "1) openpaye_dossiers_list — recuperer le code dossier (string) et id dossier.",
               "2) openpaye_salaries_list avec dossierId — lister les salaries actifs (matricule).",
               "3) openpaye_contrats_list avec dossierId — contrats en vigueur (id contrat, numeroContrat).",
-              "4) Saisir les variables du mois si besoin (primes, absences, heures sup).",
+              "4) Saisir les variables du mois : openpaye_variables_saisir_absence / _prime / _heures_sup / _option (ou prompt saisie_variables_paie).",
               "5) openpaye_bulletin_generer avec codeDossier + annee + mois (bulletins du dossier entier).",
               "   Ou openpaye_bulletin_calculer avec codeDossier + matricule + numeroContrat + plage mois/annee (un salarie).",
               "6) openpaye_variables_list avec dossierId (id numerique) + type + mois.",
@@ -33,6 +33,59 @@ export function registerPrompts(server: McpServer): void {
         },
       ],
     }),
+  );
+
+  server.registerPrompt(
+    "saisie_variables_paie",
+    {
+      description: "Saisir les elements variables du mois avant calcul des bulletins",
+      argsSchema: {
+        contratId: z.string().describe("Id numerique du contrat (openpaye_contrats_list)"),
+        annee: z.string().describe("Annee de paie"),
+        mois: z.string().describe("Mois de paie (1-12)"),
+        type: z
+          .enum(["absence", "prime", "heures_sup", "option", "reprise"])
+          .describe("Type d'element variable a saisir"),
+      },
+    },
+    async ({ contratId, annee, mois, type }) => {
+      const toolByType: Record<string, string> = {
+        absence: "openpaye_variables_saisir_absence",
+        prime: "openpaye_variables_saisir_prime",
+        heures_sup: "openpaye_variables_saisir_heures_sup",
+        option: "openpaye_variables_saisir_option",
+        reprise: "openpaye_variables_saisir_reprise",
+      };
+      const tool = toolByType[type];
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: [
+                `Saisir un element variable de paie pour contrat ${contratId}, periode ${mois}/${annee}, type=${type}.`,
+                "Workflow OpenPaye : saisie variables → GET bulletin (calcul). Voir openpaye://docs/saisie-variables.",
+                "1) openpaye_contrats_list / openpaye_variables_list pour obtenir contratId et codes variables.",
+                `2) ${tool} avec contratId=${contratId}, mois=${mois}, annee=${annee} + champs du type :`,
+                type === "absence"
+                  ? "   code, date_debut, date_fin, nbr_heure_by_user, nbr_jour_by_user (ex. code 520 activite partielle)"
+                  : type === "prime"
+                    ? "   code, montant (ou bases/tauxs)"
+                    : type === "heures_sup"
+                      ? "   code, nombre"
+                      : type === "option"
+                        ? "   code, valeur1/2/3, actif1…8"
+                        : "   nomVariable, valeur (query, pas de body)",
+                "3) Verifier avec openpaye_absences_periode ou openpaye_variables_bulletins si besoin.",
+                "4) Enchaine avec openpaye_bulletin_calculer ou openpaye_bulletin_generer.",
+              ].join("\n"),
+            },
+          },
+        ],
+      };
+    },
   );
 
   server.registerPrompt(
@@ -56,7 +109,7 @@ export function registerPrompts(server: McpServer): void {
             text: [
               `Calculer/generer les bulletins pour le dossier ${codeDossier}, periode ${mois}/${annee}.`,
               "L'API OpenPaye n'expose pas de POST dedie : le calcul se fait via GET apres saisie des variables.",
-              "1) Verifier/saisir les variables du mois : openpaye_primes_create, openpaye_absences_create, openpaye_heures_supp_create, openpaye_options_create, openpaye_net_entreprise_create.",
+              "1) Verifier/saisir les variables du mois : openpaye_variables_saisir_absence, _prime, _heures_sup, _option, _reprise, _net_entreprise.",
               matricule && numeroContrat
                 ? `2) openpaye_bulletin_calculer avec codeDossier=${codeDossier}, matricule=${matricule}, numeroContrat=${numeroContrat}, moisDebut/moisFin=${mois}, anneeDebut/anneeFin=${annee}.`
                 : `2) openpaye_bulletin_generer avec codeDossier=${codeDossier}, annee=${annee}, mois=${mois} (tous les salaries du dossier).`,

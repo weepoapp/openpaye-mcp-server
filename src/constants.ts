@@ -1,6 +1,11 @@
 export const SERVER_NAME = "openpaye-mcp-server";
-export const SERVER_VERSION = "0.1.4";
+export const SERVER_VERSION = "0.1.5";
 
+/** Documentation API actuelle (portail Redoc « V2 »). */
+export const OPENPAYE_API_VERSION = "v2";
+export const OPENPAYE_DOCS_URL = "https://openpaye.redoc.ly/";
+
+/** Base URL production — pas de prefixe /v2 dans les chemins (GET /dossiers, etc.). */
 export const DEFAULT_BASE_URL = "https://api.openpaye.co";
 export const DEFAULT_HTTP_TIMEOUT_MS = 30_000;
 
@@ -48,6 +53,12 @@ export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
     path: "/Abcenses",
     description: "Create an absence for a contract",
   },
+  {
+    toolName: "openpaye_variables_saisir_absence",
+    method: "POST",
+    path: "/Abcenses",
+    description: "Enter absence payroll variable for a contract",
+  },
   { toolName: "openpaye_bulletinspaies_list", method: "GET", path: "/bulletinspaies", description: "List payroll slips" },
   {
     toolName: "openpaye_bulletin_calculer",
@@ -86,12 +97,36 @@ export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
   { toolName: "openpaye_etablissements_delete", method: "DELETE", path: "/etablissements/{id}", description: "Delete establishment", hasIdParam: true },
   { toolName: "openpaye_heures_supp_update", method: "PUT", path: "/HeuresSupplementaires", description: "Update overtime hours" },
   { toolName: "openpaye_heures_supp_create", method: "POST", path: "/HeuresSupplementaires", description: "Create overtime hours" },
+  {
+    toolName: "openpaye_variables_saisir_heures_sup",
+    method: "POST",
+    path: "/HeuresSupplementaires",
+    description: "Enter overtime hours payroll variable",
+  },
   { toolName: "openpaye_net_entreprise_update", method: "PUT", path: "/NetEntreprise", description: "Update net enterprise variables" },
   { toolName: "openpaye_net_entreprise_create", method: "POST", path: "/NetEntreprise", description: "Create net enterprise variables" },
+  {
+    toolName: "openpaye_variables_saisir_net_entreprise",
+    method: "POST",
+    path: "/NetEntreprise",
+    description: "Enter Net-Entreprises credentials for a folder",
+  },
   { toolName: "openpaye_options_update", method: "PUT", path: "/Options", description: "Update options" },
   { toolName: "openpaye_options_create", method: "POST", path: "/Options", description: "Create options" },
+  {
+    toolName: "openpaye_variables_saisir_option",
+    method: "POST",
+    path: "/Options",
+    description: "Enter option payroll variable",
+  },
   { toolName: "openpaye_primes_update", method: "PUT", path: "/Primes", description: "Update bonus" },
   { toolName: "openpaye_primes_create", method: "POST", path: "/Primes", description: "Create bonus" },
+  {
+    toolName: "openpaye_variables_saisir_prime",
+    method: "POST",
+    path: "/Primes",
+    description: "Enter bonus payroll variable",
+  },
   { toolName: "openpaye_salaries_list", method: "GET", path: "/salaries", description: "List employees" },
   { toolName: "openpaye_salaries_update", method: "PUT", path: "/salaries", description: "Update employee" },
   { toolName: "openpaye_salaries_create", method: "POST", path: "/salaries", description: "Create employee" },
@@ -103,4 +138,10 @@ export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
   { toolName: "openpaye_compteurs_conges", method: "GET", path: "/variablesbulletins/CompteursConges", description: "Get paid leave counters" },
   { toolName: "openpaye_variables_reprise_list", method: "GET", path: "/VariablesRepriseDossier", description: "List takeover variables" },
   { toolName: "openpaye_variables_reprise_create", method: "POST", path: "/VariablesRepriseDossier", description: "Create takeover variable" },
+  {
+    toolName: "openpaye_variables_saisir_reprise",
+    method: "POST",
+    path: "/VariablesRepriseDossier",
+    description: "Enter takeover folder variable",
+  },
 ];

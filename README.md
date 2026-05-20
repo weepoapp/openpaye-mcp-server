@@ -18,6 +18,12 @@ npm install
 npm run build
 ```
 
+## API OpenPaye
+
+Ce serveur cible la **documentation API V2** d’OpenPaye : [openpaye.redoc.ly](https://openpaye.redoc.ly/).
+
+Les requêtes partent de `https://api.openpaye.co` **sans préfixe `/v2`** dans les chemins (`/dossiers`, `/bulletinspaies`, etc.). Il n’existe pas de base URL séparée du type `api.openpaye.co/v2` — le « V2 » désigne le portail de documentation actuel.
+
 ## Configuration
 
 L’API OpenPaye utilise une authentification **Basic Auth** avec un **identifiant** et une **clé API** (pas nécessairement le même couple que la connexion web). Où les trouver : depuis la liste des dossiers de paie, menu **Paramètres → Accès API**. Voir la documentation officielle : [Accès API](https://www.openpaye.co/docs/acces-api).
@@ -58,12 +64,13 @@ npx openpaye-mcp-server
 
 Le serveur expose un catalogue etendu de tools correspondant aux endpoints OpenPaye documentes:
 
-- Absences (`get`, `periode`, `create`, `update`)
+- Absences (`get`, `periode`, `create`, `update`, `saisir_absence`)
 - Bulletins de paie (`liste`, `calculer`, `generer`, `detail`, `liste par periode`)
 - Cotisations (`CaisseCotisations`)
 - Contrats (`list`, `get`, `create`, `update`, `delete`, `ContratSortant`)
 - Dossiers (`list`, `get`, `create`, `update`, `delete`, `by siret`)
 - Etablissements (`list`, `get`, `create`, `update`, `delete`)
+- **Elements variables** : saisie absences, primes, heures sup, options, reprise, Net-Entreprises (`variables_saisir_*` + `create`/`update`)
 - Heures supplementaires, NetEntreprise, Options, Primes (`create` + `update`)
 - Salaries (`list`, `get`, `create`, `update`, `delete`)
 - DSN, editions, solde tout compte, variables, variables bulletin, compteurs conges, variables reprise dossier
@@ -73,6 +80,7 @@ Le serveur expose un catalogue etendu de tools correspondant aux endpoints OpenP
 Prompts pre-orchestres exposes:
 
 - `paie_mensuelle`
+- `saisie_variables_paie`
 - `calculer_bulletin`
 - `controle_dossier`
 - `onboarding_salarie`
