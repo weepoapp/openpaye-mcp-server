@@ -1,7 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { OPENPAYE_ENDPOINT_TOOLS } from "../constants.js";
+import { ENDPOINT_DESCRIPTIONS, ENDPOINT_INPUT_SCHEMAS } from "../schemas/endpoint-inputs.js";
 import { OpenPayeClient } from "../services/openpaye-client.js";
+import { buildOpenPayeRequest } from "./build-request.js";
 
 function asText(data: unknown) {
   return {
@@ -10,58 +12,44 @@ function asText(data: unknown) {
   };
 }
 
+function fallbackInputSchema(endpoint: (typeof OPENPAYE_ENDPOINT_TOOLS)[number]): Record<string, z.ZodTypeAny> {
+  const shape: Record<string, z.ZodTypeAny> = {};
+
+  if (endpoint.hasIdParam) {
+    shape.id = z.number().int().positive();
+  }
+
+  if (endpoint.method === "GET") {
+    shape.query = z
+      .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+      .optional()
+      .describe("Parametres query legacy (preferer les champs explicites du schema)");
+  }
+
+  if (endpoint.method === "POST" || endpoint.method === "PUT") {
+    shape.body = z.unknown();
+  }
+
+  return shape;
+}
+
 export function registerTools(server: McpServer, client: OpenPayeClient): void {
   for (const endpoint of OPENPAYE_ENDPOINT_TOOLS) {
-    const shape: Record<string, z.ZodTypeAny> = {};
+    const inputSchema =
+      ENDPOINT_INPUT_SCHEMAS[endpoint.toolName] ?? fallbackInputSchema(endpoint);
 
-    if (endpoint.hasIdParam) {
-      shape.id = z.number().int().positive();
-    }
-
-    if (endpoint.queryKeys && endpoint.queryKeys.length > 0) {
-      shape.query = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional();
-    } else if (endpoint.method === "GET") {
-      shape.query = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional();
-    }
-
-    if (endpoint.method === "POST" || endpoint.method === "PUT") {
-      shape.body = z.unknown();
-    }
+    const description = ENDPOINT_DESCRIPTIONS[endpoint.toolName] ?? endpoint.description;
 
     server.registerTool(
       endpoint.toolName,
       {
-        description: endpoint.description,
-        inputSchema: shape,
+        description,
+        inputSchema,
       },
       async (input) => {
         const args = input as Record<string, unknown>;
-        const inputQuery =
-          typeof args.query === "object" && args.query !== null ? (args.query as Record<string, unknown>) : undefined;
-
-        const endpointPath =
-          endpoint.hasIdParam && typeof args.id === "number"
-            ? endpoint.path.replace("{id}", String(args.id))
-            : endpoint.path;
-
-        const endpointPathWithSiret =
-          endpoint.path.includes("{siret}") && inputQuery && "siret" in inputQuery
-            ? endpointPath.replace("{siret}", String(inputQuery.siret))
-            : endpointPath;
-
-        const query = inputQuery ? { ...inputQuery } : undefined;
-        if (query && "siret" in query) {
-          delete query.siret;
-        }
-
-        return asText(
-          await client.request({
-            method: endpoint.method,
-            path: endpointPathWithSiret,
-            query: query as Record<string, string | number | boolean> | undefined,
-            body: "body" in args ? args.body : undefined,
-          }),
-        );
+        const request = buildOpenPayeRequest(endpoint, args);
+        return asText(await client.request(request));
       },
     );
   }

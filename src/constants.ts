@@ -31,7 +31,6 @@ export interface EndpointToolDefinition {
   path: string;
   description: string;
   hasIdParam?: boolean;
-  queryKeys?: string[];
 }
 
 export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
@@ -40,11 +39,15 @@ export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
     toolName: "openpaye_absences_periode",
     method: "GET",
     path: "/Abcenses/periode",
-    description: "List absences by period",
-    queryKeys: ["contratId", "anneeDebut", "moisDebut", "anneeFin", "moisFin"],
+    description: "List absences by period for a contract",
   },
   { toolName: "openpaye_absences_update", method: "PUT", path: "/Abcenses", description: "Update an absence" },
-  { toolName: "openpaye_absences_create", method: "POST", path: "/Abcenses", description: "Create an absence", queryKeys: ["contratId"] },
+  {
+    toolName: "openpaye_absences_create",
+    method: "POST",
+    path: "/Abcenses",
+    description: "Create an absence for a contract",
+  },
   { toolName: "openpaye_bulletinspaies_list", method: "GET", path: "/bulletinspaies", description: "List payroll slips" },
   { toolName: "openpaye_bulletinspaies_details", method: "GET", path: "/bulletinspaies/BulletinDetail", description: "Get payroll slip details" },
   { toolName: "openpaye_bulletinspaies_by_periode", method: "GET", path: "/bulletinspaies/listebulletinspaies", description: "List payroll slips by period" },
@@ -61,7 +64,7 @@ export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
   { toolName: "openpaye_dossiers_create", method: "POST", path: "/dossiers", description: "Create folder" },
   { toolName: "openpaye_dossiers_get", method: "GET", path: "/dossiers/{id}", description: "Get folder", hasIdParam: true },
   { toolName: "openpaye_dossiers_delete", method: "DELETE", path: "/dossiers/{id}", description: "Delete folder", hasIdParam: true },
-  { toolName: "openpaye_dossiers_by_siret", method: "GET", path: "/dossiers/siret/{siret}", description: "Get folder by SIRET", queryKeys: ["siret"] },
+  { toolName: "openpaye_dossiers_by_siret", method: "GET", path: "/dossiers/siret/{siret}", description: "Get folder by SIRET" },
   { toolName: "openpaye_dsns_list", method: "GET", path: "/DSNs", description: "List DSN" },
   { toolName: "openpaye_editions_list", method: "GET", path: "/editions", description: "List editions" },
   { toolName: "openpaye_etablissements_list", method: "GET", path: "/etablissements", description: "List establishments" },

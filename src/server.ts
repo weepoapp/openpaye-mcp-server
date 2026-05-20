@@ -35,7 +35,11 @@ export function createMcpServer(): McpServer {
               baseUrl: process.env.OPENPAYE_BASE_URL ?? "https://api.openpaye.co",
               auth: "Basic Auth",
               credentialsHint:
-                "Identifiant et clé API : compte admin OpenPaye → dossiers de paie → Paramètres → Accès API (voir documentationUrl).",
+                "Identifiant et cle API : compte admin OpenPaye → dossiers de paie → Parametres → Acces API (voir documentationUrl).",
+              apiPathsNote:
+                "Les chemins API sont en minuscules (/bulletinspaies, /editions, /variables). Les bulletins exigent codeDossier + matricule + numeroContrat ou codeDossier + annee + mois. Les variables utilisent dossierId (id numerique), pas codeDossier.",
+              workflowHint:
+                "Ordre typique : dossiers_list → salaries_list (dossierId) → contrats_list (dossierId) → bulletinspaies_by_periode ou bulletinspaies_list.",
               requiredEnv: ["OPENPAYE_API_USER", "OPENPAYE_API_KEY"],
             },
             null,
