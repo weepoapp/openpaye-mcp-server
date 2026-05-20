@@ -38,8 +38,10 @@ export function createMcpServer(): McpServer {
                 "Identifiant et cle API : compte admin OpenPaye → dossiers de paie → Parametres → Acces API (voir documentationUrl).",
               apiPathsNote:
                 "Les chemins API sont en minuscules (/bulletinspaies, /editions, /variables). Les bulletins exigent codeDossier + matricule + numeroContrat ou codeDossier + annee + mois. Les variables utilisent dossierId (id numerique), pas codeDossier.",
+              bulletinWorkflowHint:
+                "Pas de POST « calculer bulletin » dans l'API v1_1. Workflow : saisir variables (primes, absences, heures sup) puis GET bulletin — openpaye_bulletin_calculer (un salarie) ou openpaye_bulletin_generer (tout le dossier/mois).",
               workflowHint:
-                "Ordre typique : dossiers_list → salaries_list (dossierId) → contrats_list (dossierId) → bulletinspaies_by_periode ou bulletinspaies_list.",
+                "Ordre typique : dossiers_list → salaries_list (dossierId) → contrats_list (dossierId) → saisie variables → bulletin_generer ou bulletin_calculer.",
               requiredEnv: ["OPENPAYE_API_USER", "OPENPAYE_API_KEY"],
             },
             null,

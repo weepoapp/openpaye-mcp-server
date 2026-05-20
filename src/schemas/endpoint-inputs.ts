@@ -15,6 +15,27 @@ import {
 
 export type ToolInputSchema = Record<string, z.ZodTypeAny>;
 
+const bulletinSalarieSchema: ToolInputSchema = {
+  codeDossier,
+  matricule,
+  numeroContrat,
+  moisDebut: mois.describe("Mois de debut"),
+  moisFin: mois.describe("Mois de fin"),
+  anneeDebut: annee.describe("Annee de debut"),
+  anneeFin: annee.describe("Annee de fin"),
+  inclureDocumentDeSortie: z
+    .boolean()
+    .optional()
+    .describe("Inclure le document de sortie dans la reponse"),
+};
+
+const bulletinDossierPeriodeSchema: ToolInputSchema = {
+  codeDossier,
+  annee,
+  mois,
+  page,
+};
+
 /** Schemas d'entree par tool (parametres au premier niveau, pas dans query). */
 export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
   openpaye_absences_get: {
@@ -34,31 +55,16 @@ export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
   openpaye_absences_update: {
     body: z.unknown().describe("Corps JSON de l'absence a modifier"),
   },
-  openpaye_bulletinspaies_list: {
-    codeDossier,
-    matricule,
-    numeroContrat,
-    moisDebut: mois.describe("Mois de debut"),
-    moisFin: mois.describe("Mois de fin"),
-    anneeDebut: annee.describe("Annee de debut"),
-    anneeFin: annee.describe("Annee de fin"),
-    inclureDocumentDeSortie: z
-      .boolean()
-      .optional()
-      .describe("Inclure le document de sortie dans la reponse"),
-  },
+  openpaye_bulletinspaies_list: bulletinSalarieSchema,
+  openpaye_bulletin_calculer: bulletinSalarieSchema,
   openpaye_bulletinspaies_details: {
     contratid,
     annee,
     mois,
     variableARecuperer: z.string().min(1).describe("Code de la ligne de bulletin a recuperer"),
   },
-  openpaye_bulletinspaies_by_periode: {
-    codeDossier,
-    annee,
-    mois,
-    page,
-  },
+  openpaye_bulletinspaies_by_periode: bulletinDossierPeriodeSchema,
+  openpaye_bulletin_generer: bulletinDossierPeriodeSchema,
   openpaye_caisse_cotisations_get: {
     id: z.number().int().positive().describe("Identifiant de la caisse de cotisations"),
   },
@@ -208,8 +214,12 @@ export const ENDPOINT_INPUT_SCHEMAS: Record<string, ToolInputSchema> = {
 export const ENDPOINT_DESCRIPTIONS: Partial<Record<string, string>> = {
   openpaye_bulletinspaies_list:
     "Obtenir un bulletin de paie pour un salarie/contrat sur une plage de mois. Requiert codeDossier + matricule + numeroContrat (openpaye_dossiers_list, openpaye_salaries_list, openpaye_contrats_list).",
+  openpaye_bulletin_calculer:
+    "Calculer/obtenir le bulletin d'un salarie pour une periode (GET /bulletinspaies). L'API OpenPaye n'a pas de POST « calculer » : saisir d'abord les variables du mois (openpaye_primes_create, openpaye_absences_create, openpaye_heures_supp_create, …) puis appeler ce tool. Alias semantique de openpaye_bulletinspaies_list.",
   openpaye_bulletinspaies_by_periode:
     "Lister les bulletins d'un dossier pour un mois/annee. Requiert codeDossier (plus simple que bulletinspaies_list pour une periode donnee).",
+  openpaye_bulletin_generer:
+    "Generer/lister les bulletins de tous les salaries d'un dossier pour un mois (GET /bulletinspaies/listebulletinspaies). A utiliser apres saisie des variables de paie du mois. Alias semantique de openpaye_bulletinspaies_by_periode.",
   openpaye_bulletinspaies_details:
     "Detail d'une ligne de bulletin (parametre API contratid en minuscules, pas contratId).",
   openpaye_editions_list:

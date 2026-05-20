@@ -1,5 +1,5 @@
 export const SERVER_NAME = "openpaye-mcp-server";
-export const SERVER_VERSION = "0.1.3";
+export const SERVER_VERSION = "0.1.4";
 
 export const DEFAULT_BASE_URL = "https://api.openpaye.co";
 export const DEFAULT_HTTP_TIMEOUT_MS = 30_000;
@@ -49,8 +49,20 @@ export const OPENPAYE_ENDPOINT_TOOLS: EndpointToolDefinition[] = [
     description: "Create an absence for a contract",
   },
   { toolName: "openpaye_bulletinspaies_list", method: "GET", path: "/bulletinspaies", description: "List payroll slips" },
+  {
+    toolName: "openpaye_bulletin_calculer",
+    method: "GET",
+    path: "/bulletinspaies",
+    description: "Calculate payroll slip for one employee",
+  },
   { toolName: "openpaye_bulletinspaies_details", method: "GET", path: "/bulletinspaies/BulletinDetail", description: "Get payroll slip details" },
   { toolName: "openpaye_bulletinspaies_by_periode", method: "GET", path: "/bulletinspaies/listebulletinspaies", description: "List payroll slips by period" },
+  {
+    toolName: "openpaye_bulletin_generer",
+    method: "GET",
+    path: "/bulletinspaies/listebulletinspaies",
+    description: "Generate payroll slips for a folder and period",
+  },
   { toolName: "openpaye_caisse_cotisations_get", method: "GET", path: "/CaisseCotisations/{id}", description: "Get one caisse cotisation", hasIdParam: true },
   { toolName: "openpaye_caisse_cotisations_create", method: "POST", path: "/CaisseCotisations", description: "Create caisse cotisation" },
   { toolName: "openpaye_contrats_list", method: "GET", path: "/contrats", description: "List contracts" },

@@ -22,11 +22,46 @@ export function registerPrompts(server: McpServer): void {
               "1) openpaye_dossiers_list — recuperer le code dossier (string) et id dossier.",
               "2) openpaye_salaries_list avec dossierId — lister les salaries actifs (matricule).",
               "3) openpaye_contrats_list avec dossierId — contrats en vigueur (id contrat, numeroContrat).",
-              "4) openpaye_bulletinspaies_by_periode avec codeDossier + annee + mois (liste bulletins du mois).",
-              "   Ou openpaye_bulletinspaies_list avec codeDossier + matricule + numeroContrat + plage mois/annee.",
-              "5) openpaye_variables_list avec dossierId (id numerique) + type + mois.",
-              "6) openpaye_editions_list avec codeDossier + moisDebut/moisFin + annee (+ format PDF si besoin).",
-              "7) Termine par une check-list des actions de controle.",
+              "4) Saisir les variables du mois si besoin (primes, absences, heures sup).",
+              "5) openpaye_bulletin_generer avec codeDossier + annee + mois (bulletins du dossier entier).",
+              "   Ou openpaye_bulletin_calculer avec codeDossier + matricule + numeroContrat + plage mois/annee (un salarie).",
+              "6) openpaye_variables_list avec dossierId (id numerique) + type + mois.",
+              "7) openpaye_editions_list avec codeDossier + moisDebut/moisFin + annee (+ format PDF si besoin).",
+              "8) Termine par une check-list des actions de controle.",
+            ].join("\n"),
+          },
+        },
+      ],
+    }),
+  );
+
+  server.registerPrompt(
+    "calculer_bulletin",
+    {
+      description: "Calculer ou generer les bulletins apres saisie des variables de paie",
+      argsSchema: {
+        codeDossier: z.string().describe("Code dossier (string, ex. depuis openpaye_dossiers_list)"),
+        annee: z.string().describe("Annee de paie"),
+        mois: z.string().describe("Mois de paie (1-12)"),
+        matricule: z.string().optional().describe("Matricule salarie (si calcul d'un seul bulletin)"),
+        numeroContrat: z.string().optional().describe("Numero contrat (si calcul d'un seul bulletin)"),
+      },
+    },
+    async ({ codeDossier, annee, mois, matricule, numeroContrat }) => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: [
+              `Calculer/generer les bulletins pour le dossier ${codeDossier}, periode ${mois}/${annee}.`,
+              "L'API OpenPaye n'expose pas de POST dedie : le calcul se fait via GET apres saisie des variables.",
+              "1) Verifier/saisir les variables du mois : openpaye_primes_create, openpaye_absences_create, openpaye_heures_supp_create, openpaye_options_create, openpaye_net_entreprise_create.",
+              matricule && numeroContrat
+                ? `2) openpaye_bulletin_calculer avec codeDossier=${codeDossier}, matricule=${matricule}, numeroContrat=${numeroContrat}, moisDebut/moisFin=${mois}, anneeDebut/anneeFin=${annee}.`
+                : `2) openpaye_bulletin_generer avec codeDossier=${codeDossier}, annee=${annee}, mois=${mois} (tous les salaries du dossier).`,
+              "3) Optionnel : openpaye_bulletinspaies_details pour une ligne precise (contratid, variableARecuperer).",
+              "4) Resumer net/brut, anomalies et prochaines actions (editions, DSN).",
             ].join("\n"),
           },
         },

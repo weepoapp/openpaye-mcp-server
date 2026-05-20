@@ -59,7 +59,7 @@ npx openpaye-mcp-server
 Le serveur expose un catalogue etendu de tools correspondant aux endpoints OpenPaye documentes:
 
 - Absences (`get`, `periode`, `create`, `update`)
-- Bulletins de paie (`liste`, `detail`, `liste par periode`)
+- Bulletins de paie (`liste`, `calculer`, `generer`, `detail`, `liste par periode`)
 - Cotisations (`CaisseCotisations`)
 - Contrats (`list`, `get`, `create`, `update`, `delete`, `ContratSortant`)
 - Dossiers (`list`, `get`, `create`, `update`, `delete`, `by siret`)
@@ -73,6 +73,7 @@ Le serveur expose un catalogue etendu de tools correspondant aux endpoints OpenP
 Prompts pre-orchestres exposes:
 
 - `paie_mensuelle`
+- `calculer_bulletin`
 - `controle_dossier`
 - `onboarding_salarie`
 
