@@ -278,7 +278,7 @@ export const ENDPOINT_DESCRIPTIONS: Partial<Record<string, string>> = {
   openpaye_variables_list:
     "Variables de paie d'un dossier pour un mois. Utilise dossierId (id numerique), pas codeDossier. Liste des types : https://api.openpaye.co/",
   openpaye_periode_ouvrir:
-    "Preparer/verifier l'ouverture d'une periode de paie (GET /variables). Pas de POST « ouvrir periode » dans l'API : chaque appel cible un mois explicite. Utiliser ce tool en debut de mois pour confirmer l'acces aux variables avant saisie. Voir openpaye://docs/ouvrir-periode.",
+    "Liste le catalogue variables d'un mois (GET /variables). ATTENTION : ne verifie PAS que le mois est ouvert pour saisie — POST Primes/Absences peut echouer avec « Le mois n'est pas valide » meme si ce GET reussit. Ouverture de periode = action UI admin domaine, pas d'endpoint API public. Voir openpaye://docs/ouvrir-periode.",
   openpaye_variables_bulletins:
     "Variable d'un bulletin pour un contrat/mois/annee.",
   openpaye_salaries_list: "Lister les salaries. Filtrer par dossierId (id numerique du dossier).",
@@ -287,23 +287,23 @@ export const ENDPOINT_DESCRIPTIONS: Partial<Record<string, string>> = {
   openpaye_dsns_list: "Obtenir une DSN. Requiert codeDossier, codeEtablissement, mois, annee.",
   openpaye_solde_tout_compte: "Solde de tout compte. Requiert codeDossier, matricule, numeroContrat.",
   openpaye_absences_create:
-    "Ajouter une absence (element variable) pour un contrat/mois. Query contratId + body code, dates, mois, annee. Codes : openpaye_variables_list (dossierId + type).",
+    "Ajouter une absence (element variable) pour un contrat/mois. Query contratId + body code, dates, mois, annee. PREREQUIS : mois ouvert dans l'UI. Codes : openpaye_variables_list (dossierId + type).",
   openpaye_variables_saisir_absence:
-    "Saisir une absence sur le bulletin du mois (POST /Abcenses). Etape 1 avant calcul bulletin. Alias de openpaye_absences_create.",
+    "Saisir une absence sur le bulletin du mois (POST /Abcenses). PREREQUIS : mois ouvert dans l'UI OpenPaye par l'admin domaine, sinon « Le mois n'est pas valide ». Alias de openpaye_absences_create.",
   openpaye_absences_periode:
     "Lister les absences d'un contrat sur une plage de mois (avant/apres saisie).",
   openpaye_primes_create:
-    "Ajouter une prime (element variable) pour un contrat/mois. Query contratId + body code, montant, mois, annee.",
+    "Ajouter une prime (element variable) pour un contrat/mois. Query contratId + body code, montant, mois, annee. PREREQUIS : mois ouvert dans l'UI.",
   openpaye_variables_saisir_prime:
-    "Saisir une prime sur le bulletin du mois (POST /Primes). Alias de openpaye_primes_create.",
+    "Saisir une prime sur le bulletin du mois (POST /Primes). PREREQUIS : mois ouvert dans l'UI, sinon « Le mois n'est pas valide ». Alias de openpaye_primes_create.",
   openpaye_heures_supp_create:
-    "Ajouter des heures supplementaires (element variable). Query contratId + body code, nombre, mois, annee.",
+    "Ajouter des heures supplementaires (element variable). Query contratId + body code, nombre, mois, annee. PREREQUIS : mois ouvert dans l'UI.",
   openpaye_variables_saisir_heures_sup:
-    "Saisir des heures supplementaires (POST /HeuresSupplementaires). Alias de openpaye_heures_supp_create.",
+    "Saisir des heures supplementaires (POST /HeuresSupplementaires). PREREQUIS : mois ouvert dans l'UI, sinon « Le mois n'est pas valide ». Alias de openpaye_heures_supp_create.",
   openpaye_options_create:
-    "Ajouter une option (element variable). Query contratId + body code, valeurs, mois, annee.",
+    "Ajouter une option (element variable). Query contratId + body code, valeurs, mois, annee. PREREQUIS : mois ouvert dans l'UI.",
   openpaye_variables_saisir_option:
-    "Saisir une option de paie (POST /Options). Alias de openpaye_options_create.",
+    "Saisir une option de paie (POST /Options). PREREQUIS : mois ouvert dans l'UI, sinon « Le mois n'est pas valide ». Alias de openpaye_options_create.",
   openpaye_variables_reprise_create:
     "Saisir une variable reprise dossier (query contratId + nomVariable + valeur).",
   openpaye_variables_saisir_reprise:

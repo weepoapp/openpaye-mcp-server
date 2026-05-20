@@ -1,6 +1,6 @@
 {
   "name": "openpaye-mcp-server",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "MCP Server for OpenPaye API with stdio and HTTP transports",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

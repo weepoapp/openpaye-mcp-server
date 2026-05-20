@@ -71,7 +71,7 @@ Le serveur expose un catalogue etendu de tools correspondant aux endpoints OpenP
 - Dossiers (`list`, `get`, `create`, `update`, `delete`, `by siret`)
 - Etablissements (`list`, `get`, `create`, `update`, `delete`)
 - **Elements variables** : saisie absences, primes, heures sup, options, reprise, Net-Entreprises (`variables_saisir_*` + `create`/`update`)
-- **Periode de paie** : `openpaye_periode_ouvrir` (verifier/preparer un mois — pas de POST dedie)
+- **Periode de paie** : ouverture du mois **uniquement dans l'UI** OpenPaye (admin domaine). `openpaye_periode_ouvrir` = GET catalogue variables, ne debloque pas la saisie. Voir ressource `openpaye://docs/ouvrir-periode`.
 - Heures supplementaires, NetEntreprise, Options, Primes (`create` + `update`)
 - Salaries (`list`, `get`, `create`, `update`, `delete`)
 - DSN, editions, solde tout compte, variables, variables bulletin, compteurs conges, variables reprise dossier

@@ -1,5 +1,5 @@
 export const SERVER_NAME = "openpaye-mcp-server";
-export const SERVER_VERSION = "0.1.6";
+export const SERVER_VERSION = "0.1.7";
 
 /** Documentation API actuelle (portail Redoc « V2 »). */
 export const OPENPAYE_API_VERSION = "v2";

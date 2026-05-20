@@ -5,7 +5,7 @@ export function registerPrompts(server: McpServer): void {
   server.registerPrompt(
     "ouvrir_periode_paie",
     {
-      description: "Ouvrir ou preparer une periode de paie (mois) avant saisie et bulletins",
+      description: "Preparer une periode de paie (mois) — ouverture UI obligatoire avant saisie API",
       argsSchema: {
         dossierId: z.string().describe("Id numerique du dossier (openpaye_dossiers_list)"),
         codeDossier: z.string().describe("Code dossier string (openpaye_dossiers_list)"),
@@ -20,20 +20,21 @@ export function registerPrompts(server: McpServer): void {
           content: {
             type: "text",
             text: [
-              `Ouvrir/preparer la periode de paie ${mois}/${annee} pour le dossier ${codeDossier} (id ${dossierId}).`,
-              "Pas d'endpoint API « ouvrir periode » : voir openpaye://docs/ouvrir-periode.",
+              `Preparer la periode de paie ${mois}/${annee} pour le dossier ${codeDossier} (id ${dossierId}).`,
+              "IMPORTANT : l'API OpenPaye ne peut PAS ouvrir un mois. Sans ouverture manuelle dans l'UI, POST Primes/Absences/HeuresSup renvoie « Le mois n'est pas valide ». Voir openpaye://docs/ouvrir-periode.",
               "",
-              "Interface OpenPaye (si acces manuel) :",
+              "Etape obligatoire (UI OpenPaye, admin domaine / cabinet) :",
               "- Parametres → Mes domaines → Ouvrir domaine → Ouvrir dossier",
-              `- Menu Bulletins → selectionner le mois ${mois}/${annee}`,
+              `- Menu Bulletins → ouvrir le mois ${mois}/${annee}`,
               "",
-              "Workflow API :",
+              "Workflow API (apres ouverture UI) :",
               `1) openpaye_dossiers_get id=${dossierId} — verifier le dossier et l'annee de debut.`,
-              `2) openpaye_periode_ouvrir dossierId=${dossierId}, mois=${mois}, type=<rubrique> — verifier l'acces au mois (types sur https://api.openpaye.co/).`,
-              "3) openpaye_salaries_list + openpaye_contrats_list avec dossierId.",
-              "4) openpaye_variables_saisir_* pour saisir les elements variables du mois.",
-              `5) openpaye_bulletin_generer codeDossier=${codeDossier}, annee=${annee}, mois=${mois}.`,
-              "6) Controles : openpaye_editions_list (tableau des cotisations), puis DSN si fin de mois.",
+              "2) openpaye_salaries_list + openpaye_contrats_list avec dossierId.",
+              "3) openpaye_variables_saisir_* pour saisir les elements variables du mois.",
+              `4) openpaye_bulletin_generer codeDossier=${codeDossier}, annee=${annee}, mois=${mois}.`,
+              "5) Controles : openpaye_editions_list (tableau des cotisations), puis DSN si fin de mois.",
+              "",
+              "Note : openpaye_periode_ouvrir (= GET /variables) liste le catalogue mais ne garantit pas que le mois est ouvert pour saisie.",
             ].join("\n"),
           },
         },
@@ -58,7 +59,7 @@ export function registerPrompts(server: McpServer): void {
             type: "text",
             text: [
               `Prepare un recap de paie pour ${mois}/${annee}.`,
-              "0) Ouvrir la periode : prompt ouvrir_periode_paie ou openpaye_periode_ouvrir (dossierId + mois + type). Doc : openpaye://docs/ouvrir-periode.",
+              "0) Ouvrir le mois dans l'UI OpenPaye (admin domaine) — pas d'endpoint API. Doc : openpaye://docs/ouvrir-periode.",
               "1) openpaye_dossiers_list — recuperer le code dossier (string) et id dossier.",
               "2) openpaye_salaries_list avec dossierId — lister les salaries actifs (matricule).",
               "3) openpaye_contrats_list avec dossierId — contrats en vigueur (id contrat, numeroContrat).",
@@ -106,7 +107,8 @@ export function registerPrompts(server: McpServer): void {
               type: "text",
               text: [
                 `Saisir un element variable de paie pour contrat ${contratId}, periode ${mois}/${annee}, type=${type}.`,
-                "Workflow OpenPaye : saisie variables → GET bulletin (calcul). Voir openpaye://docs/saisie-variables.",
+                "PREREQUIS : mois ouvert dans l'UI OpenPaye, sinon « Le mois n'est pas valide » sur absence/prime/heures_sup/option.",
+                "Workflow OpenPaye : ouverture UI du mois → saisie variables → GET bulletin (calcul). Voir openpaye://docs/saisie-variables.",
                 "1) openpaye_contrats_list / openpaye_variables_list pour obtenir contratId et codes variables.",
                 `2) ${tool} avec contratId=${contratId}, mois=${mois}, annee=${annee} + champs du type :`,
                 type === "absence"

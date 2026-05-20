@@ -49,7 +49,7 @@ export function createMcpServer(): McpServer {
               bulletinWorkflowHint:
                 "Saisir d'abord les elements variables (openpaye_variables_saisir_*) puis GET bulletin — openpaye_bulletin_calculer ou openpaye_bulletin_generer. Doc : openpaye://docs/saisie-variables",
               workflowHint:
-                "Ordre typique : dossiers_list → periode_ouvrir (verifier mois) → salaries/contrats → saisie variables → bulletin_generer. Doc periode : openpaye://docs/ouvrir-periode",
+                "Ordre typique : dossiers_list → ouvrir le mois dans l'UI OpenPaye (admin domaine) → salaries/contrats → saisie variables → bulletin_generer. Doc : openpaye://docs/ouvrir-periode",
               requiredEnv: ["OPENPAYE_API_USER", "OPENPAYE_API_KEY"],
             },
             null,
@@ -270,7 +270,46 @@ export function createMcpServer(): McpServer {
           text: JSON.stringify(
             {
               finding:
-                "L'API OpenPaye V2 (Redoc) ne propose pas d'endpoint POST/PUT « ouvrir periode » ou « cloturer periode ». L'ouverture d'un mois se fait dans l'interface ou implicitement en ciblant mois/annee dans chaque appel API.",
+                "Aucun endpoint public pour ouvrir/cloturer un mois de paie. Verrou metier cote serveur OpenPaye : POST /Primes, /HeuresSupplementaires, /Abcenses, /Options renvoient « Le mois n'est pas valide » tant que le mois n'a pas ete ouvert dans l'interface par l'administrateur du domaine / le cabinet.",
+              endpointsPublicsVerifies: {
+                redocSections: [
+                  "Absences", "Primes", "HeuresSupplementaires", "Options", "Dossiers",
+                  "Variables", "VariablesRepriseDossier", "BulletinsPaies",
+                ],
+                absentDeLaDoc: [
+                  "POST ouvrir periode", "POST cloturer periode", "GET statut periode",
+                ],
+                cheminsTestes404: [
+                  "/periodes", "/Periodes", "/PeriodePaie", "/moispaies",
+                  "/TraitementPaie", "/CloturePeriode",
+                ],
+              },
+              diagnosticEmpirique: {
+                fonctionneSansVerrouMois: [
+                  "POST /VariablesRepriseDossier (ex. BRUT_CUMUL)",
+                  "GET lecture (dossiers, salaries, contrats, bulletins)",
+                ],
+                bloqueSiMoisNonOuvert: [
+                  "POST /Primes",
+                  "POST /HeuresSupplementaires",
+                  "POST /Abcenses",
+                  "POST /Options (a confirmer — meme verrou attendu)",
+                ],
+                erreurTypique: "Le mois n'est pas valide",
+                faussePiste:
+                  "GET /variables (openpaye_periode_ouvrir) peut repondre 200 alors que la saisie mensuelle reste bloquee — ce GET ne debloque pas et ne garantit pas que le mois est ouvert pour POST.",
+              },
+              solutionApi: {
+                reponse: "NON — pas de contournement documente dans l'API V2 publique.",
+                contournementsPartiels: [
+                  "VariablesRepriseDossier pour cumuls/reprise (hors cycle mensuel verrouille).",
+                  "Donnees maitres : salaries, contrats, etablissements (sans mois de paie ouvert).",
+                ],
+                actionRequise:
+                  "Ouverture manuelle du mois dans l'UI OpenPaye par l'administrateur du domaine ou le gestionnaire paie du cabinet, puis saisie API.",
+                support:
+                  "Demander a OpenPaye (support.openpaye.co) si un endpoint partenaire existe ou si une ouverture API est prevue — non publie dans Redoc.",
+              },
               interfaceUtilisateur: {
                 sources: [
                   "https://openpaye.co/docs/creer-un-dossier",
@@ -297,10 +336,10 @@ export function createMcpServer(): McpServer {
                   },
                   {
                     step: 2,
-                    action: "Verifier / preparer le mois (ouverture de periode cote API)",
-                    tool: "openpaye_periode_ouvrir",
+                    action: "Lister le catalogue variables du mois (NE garantit PAS que le mois est ouvert pour saisie)",
+                    tool: "openpaye_variables_list",
                     endpoint: "GET /variables?dossierId=&type=&mois=",
-                    note: "Confirme que le dossier repond pour le mois cible. Parametre type : codes sur https://api.openpaye.co/",
+                    note: "Un 200 ici n'empeche pas « Le mois n'est pas valide » sur POST Primes/Absences. Seul test fiable : tenter une saisie ou ouvrir le mois dans l'UI.",
                   },
                   {
                     step: 3,
@@ -327,7 +366,9 @@ export function createMcpServer(): McpServer {
                 ],
               },
               exempleVerifierPeriode: {
-                tool: "openpaye_periode_ouvrir",
+                warning:
+                  "openpaye_periode_ouvrir (= GET /variables) n'est PAS un test d'ouverture de periode. Preferer un POST test ou l'ouverture UI.",
+                tool: "openpaye_variables_list",
                 params: { dossierId: 123, type: "Absence", mois: 5 },
                 note: "annee n'est pas un query param de GET /variables ; le contexte annee est porte par le dossier et les appels bulletin (annee explicite).",
               },
